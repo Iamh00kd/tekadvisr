@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TekAdvisr — 3 Cs Writer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f1; --surface: #ffffff; --surface2: #f0efe9;
+    --border: #d8d6ce; --border2: #c5c3ba;
+    --text: #1a1a18; --text2: #5c5b56; --text3: #9a9891;
+    --blue-bg: #e6f1fb; --blue-border: #185fa5; --blue-text: #0c447c;
+    --green-bg: #eaf3de; --green-border: #3b6d11; --green-text: #27500a;
+    --amber-bg: #faeeda; --amber-border: #854f0b; --amber-text: #633806;
+    --red-bg: #fcebeb; --red-border: #a32d2d; --red-text: #501313;
+    --purple-bg: #eeedfe; --purple-border: #534ab7; --purple-text: #3c3489;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
+  .topbar-logo { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .topbar-divider { width: 1px; height: 18px; background: var(--border); }
+  .topbar-sub { font-size: 13px; color: var(--text2); }
+  .topbar-badge { margin-left: auto; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green-text); }
+  .layout { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+  .page-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; letter-spacing: -0.02em; }
+  .page-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 16px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .type-btn { font-size: 13px; font-weight: 500; padding: 6px 16px; border-radius: 99px; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-family: inherit; transition: all 0.12s; }
+  .type-btn:hover { background: var(--surface2); }
+  .type-btn.active-cp { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .type-btn.active-wt { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+  .type-btn.active-in { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field textarea, .field select { font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 9px 12px; width: 100%; transition: border-color 0.12s; resize: vertical; }
+  .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
+  .field textarea { min-height: 82px; line-height: 1.55; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--blue-border); box-shadow: 0 0 0 3px rgba(24,95,165,0.08); }
+  .preset-hint { font-size: 12px; color: var(--text3); font-style: italic; min-height: 16px; }
+  .dtc-row { display: flex; gap: 8px; align-items: flex-end; }
+  .dtc-row .field { flex: 1; }
+  .dtc-add-btn { height: 39px; padding: 0 16px; font-size: 13px; font-weight: 500; font-family: inherit; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--text2); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: background 0.12s; }
+  .dtc-add-btn:hover { background: var(--surface2); }
+  .dtc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .dtc-chip { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; font-family: 'Courier New', monospace; padding: 4px 10px; border-radius: 99px; background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); letter-spacing: 0.04em; }
+  .dtc-chip button { background: none; border: none; cursor: pointer; color: var(--blue-border); font-size: 15px; line-height: 1; padding: 0 0 1px 2px; opacity: 0.7; }
+  .dtc-chip button:hover { opacity: 1; }
+  /* RECALL CARD */
+  .recall-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; }
+  .recall-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none; }
+  .recall-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .recall-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .recall-toggle { font-size: 11px; color: var(--text3); transition: transform 0.2s; display: inline-block; }
+  .recall-toggle.open { transform: rotate(180deg); }
+  .recall-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
+  .badge-loading { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+  .badge-alert { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+  .badge-clear { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+  .badge-wait { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+  .recall-body { padding: 0 20px 20px; display: none; border-top: 1px solid var(--border); }
+  .recall-body.open { display: block; }
+  .subsection-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 8px; }
+  .recall-item { border: 1px solid var(--red-border); border-radius: var(--radius); background: var(--red-bg); padding: 12px 14px; margin-bottom: 8px; }
+  .recall-item-num { font-size: 11px; font-weight: 700; color: var(--red-text); font-family: 'Courier New', monospace; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .recall-item-title { font-size: 13px; font-weight: 600; color: var(--red-text); margin-bottom: 4px; }
+  .recall-item-desc { font-size: 12px; color: var(--red-text); opacity: 0.85; line-height: 1.5; }
+  .recall-item-remedy { font-size: 12px; color: var(--red-text); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(163,45,45,0.2); }
+  .recall-item-remedy strong { font-weight: 600; }
+  .recall-none { font-size: 13px; color: var(--green-text); background: var(--green-bg); border: 1px solid var(--green-border); border-radius: var(--radius); padding: 10px 14px; }
+  .recall-wait { font-size: 13px; color: var(--text3); font-style: italic; padding: 8px 0; }
+  /* TSB */
+  .tsb-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tsb-tab { font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 99px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-family: inherit; transition: all 0.12s; }
+  .tsb-tab:hover { background: var(--surface2); }
+  .tsb-tab.active { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+  .tsb-item { border: 1px solid var(--amber-border); border-radius: var(--radius); background: var(--amber-bg); padding: 11px 14px; margin-bottom: 8px; }
+  .tsb-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+  .tsb-num { font-size: 11px; font-weight: 700; color: var(--amber-text); font-family: 'Courier New', monospace; white-space: nowrap; }
+  .tsb-title { font-size: 13px; font-weight: 600; color: var(--amber-text); }
+  .tsb-vehicles { font-size: 11px; color: var(--amber-text); opacity: 0.75; margin-bottom: 3px; }
+  .tsb-desc { font-size: 12px; color: var(--amber-text); opacity: 0.85; line-height: 1.5; }
+  .tsb-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 20px; }
+  .hti-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--purple-border); background: var(--purple-bg); color: var(--purple-text); cursor: pointer; font-family: inherit; text-decoration: none; margin-top: 14px; transition: opacity 0.12s; }
+  .hti-btn:hover { opacity: 0.8; }
+  /* GENERATE */
+  .generate-btn { width: 100%; padding: 13px; margin-top: 20px; background: var(--text); color: #fff; border: none; border-radius: var(--radius); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: -0.01em; transition: opacity 0.12s; }
+  .generate-btn:hover { opacity: 0.88; }
+  .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .error-msg { font-size: 13px; color: var(--red-text); background: var(--red-bg); border: 1px solid var(--red-border); border-radius: var(--radius); padding: 10px 14px; margin-top: 12px; }
+  /* RESULTS */
+  .results-header { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; }
+  .c-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; }
+  .c-card-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .c-label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .c-complaint .c-label { color: var(--blue-text); }
+  .c-cause .c-label { color: var(--green-text); }
+  .c-correction .c-label { color: var(--amber-text); }
+  .c-complaint .c-card-header { border-left: 3px solid var(--blue-border); }
+  .c-cause .c-card-header { border-left: 3px solid var(--green-border); }
+  .c-correction .c-card-header { border-left: 3px solid var(--amber-border); }
+  .c-card-body { padding: 14px 16px; font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+  .copy-btn { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 99px; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-family: inherit; transition: all 0.12s; }
+  .copy-btn:hover { background: var(--surface2); }
+  .copy-btn.copied { color: var(--green-text); border-color: var(--green-border); background: var(--green-bg); }
+  .bottom-row { display: flex; gap: 10px; margin-top: 8px; }
+  .copy-all-btn { flex: 1; padding: 11px; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; transition: background 0.12s; }
+  .copy-all-btn:hover { background: var(--surface2); }
+  .regen-btn { padding: 11px 20px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 14px; color: var(--text2); cursor: pointer; transition: background 0.12s; }
+  .regen-btn:hover { background: var(--surface2); }
+  .loading-dots span { display: inline-block; animation: blink 1.2s infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100%{opacity:0.25}40%{opacity:1} }
+  @media (max-width: 600px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 16px; }
+    .layout { padding: 20px 16px 60px; }
+    .card { padding: 18px; }
+  }
+  .vin-row { display: flex; gap: 8px; align-items: flex-end; }
+  .vin-row .field { flex: 1; margin-bottom: 0; }
+  .vin-lookup-btn { height: 39px; padding: 0 18px; font-size: 13px; font-weight: 600; font-family: inherit; background: var(--text); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: opacity 0.12s; }
+  .vin-lookup-btn:hover { opacity: 0.85; }
+  .vin-lookup-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .vin-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .vin-chip { font-size: 12px; padding: 3px 10px; border-radius: 99px; background: var(--purple-bg); border: 1px solid var(--purple-border); color: var(--purple-text); }
+  .vin-chip strong { font-weight: 600; }
+  .vin-status { font-size: 12px; color: var(--text3); font-style: italic; margin-top: 6px; }
+  .vin-error { font-size: 13px; color: var(--red-text); background: var(--red-bg); border: 1px solid var(--red-border); border-radius: var(--radius); padding: 8px 12px; margin-top: 8px; }
+  .spin { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">TekAdvisr</span>
+  <div class="topbar-divider"></div>
+  <span class="topbar-sub">3 Cs Writer</span>
+  <span class="topbar-badge">AI Powered</span>
+</div>
+
+<div class="layout">
+  <div class="page-title">3 Cs Writer</div>
+  <div class="page-sub">Look up a VIN, check recalls, then generate clean professional RO documentation.</div>
+
+  <!-- RO TYPE -->
+  <div class="card">
+    <div class="section-label">RO Type</div>
+    <div class="type-row">
+      <button class="type-btn active-cp" onclick="setType('CP')" id="btn-CP">Customer Pay</button>
+      <button class="type-btn" onclick="setType('WT')" id="btn-WT">Warranty</button>
+      <button class="type-btn" onclick="setType('IN')" id="btn-IN">Internal</button>
+    </div>
+  </div>
+
+  <!-- REPAIR CATEGORY -->
+  <div class="card">
+    <div class="section-label">Repair Category</div>
+    <div class="field">
+      <label>Common Repair Type (pre-fills fields below)</label>
+      <select id="preset" onchange="applyPreset()">
+        <option value="">— Select a category —</option>
+        <optgroup label="Drivetrain">
+          <option value="cv_axle">CV axle / clicking on turns</option>
+          <option value="transmission_slipping">Transmission slipping / rough shift</option>
+          <option value="transfer_case">Transfer case / 4WD issue</option>
+          <option value="wheel_bearing">Wheel bearing noise</option>
+          <option value="differential">Differential noise / leak</option>
+        </optgroup>
+        <optgroup label="Engine">
+          <option value="oil_consumption">Oil consumption / low oil</option>
+          <option value="engine_misfire">Engine misfire / rough idle</option>
+          <option value="no_start">No start / hard start</option>
+          <option value="overheating">Overheating / cooling system</option>
+          <option value="timing_chain">Timing chain noise / rattle</option>
+          <option value="valve_cover">Valve cover gasket leak</option>
+        </optgroup>
+        <optgroup label="Brakes">
+          <option value="brake_noise">Brake noise / squeal / grind</option>
+          <option value="brake_pedal">Brake pedal soft / pulsation</option>
+          <option value="abs_light">ABS / stability light on</option>
+        </optgroup>
+        <optgroup label="Electrical">
+          <option value="battery_drain">Battery drain / no start</option>
+          <option value="check_engine">Check engine light on</option>
+          <option value="infotainment">Infotainment / Bluetooth issue</option>
+          <option value="hvac_electric">HVAC / blower not working</option>
+          <option value="camera_sensor">Camera / sensor malfunction</option>
+        </optgroup>
+        <optgroup label="Steering &amp; Suspension">
+          <option value="power_steering">Power steering noise / heavy</option>
+          <option value="struts_shocks">Struts / shocks / clunk over bumps</option>
+          <option value="alignment">Pulls to one side / alignment</option>
+          <option value="tie_rod">Tie rod / steering play</option>
+        </optgroup>
+        <optgroup label="HVAC">
+          <option value="ac_no_cool">A/C not cooling</option>
+          <option value="heat_no_work">Heater not working</option>
+          <option value="ac_noise">A/C compressor noise</option>
+        </optgroup>
+        <optgroup label="Leaks">
+          <option value="oil_leak">Oil leak</option>
+          <option value="coolant_leak">Coolant leak</option>
+          <option value="power_steering_leak">Power steering fluid leak</option>
+          <option value="fuel_leak">Fuel leak / smell</option>
+        </optgroup>
+        <optgroup label="NVH">
+          <option value="nvh_general">General NVH — rattle / squeak / vibration</option>
+          <option value="exhaust_noise">Exhaust noise / leak</option>
+          <option value="wind_noise">Wind noise / door seal</option>
+        </optgroup>
+        <optgroup label="Maintenance">
+          <option value="oil_change">Oil and filter change</option>
+          <option value="multi_point">Multi-point inspection</option>
+          <option value="tire_rotation">Tire rotation / balance</option>
+          <option value="spark_plugs">Spark plug replacement</option>
+          <option value="flush">Fluid flush (coolant / brake / trans)</option>
+        </optgroup>
+      </select>
+      <div class="preset-hint" id="preset-hint"></div>
+    </div>
+  </div>
+
+  <!-- VIN LOOKUP -->
+  <div class="card">
+    <div class="section-label">VIN Lookup <span style="font-weight:400;font-size:11px;color:var(--text3);text-transform:none;letter-spacing:0;">— auto-fills vehicle info &amp; checks open recalls</span></div>
+    <div class="vin-row">
+      <div class="field">
+        <label>VIN (17 characters)</label>
+        <input id="vin-input" type="text" placeholder="e.g. 5NPE24AF1MH012345" maxlength="17" oninput="this.value=this.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g,'')" onkeydown="if(event.key==='Enter')lookupVin()">
+      </div>
+      <button class="vin-lookup-btn" onclick="lookupVin()" id="vin-btn">Look Up</button>
+    </div>
+    <div id="vin-result"></div>
+  </div>
+
+  <!-- VEHICLE INFO -->
+  <div class="card">
+    <div class="section-label">Vehicle Info</div>
+    <div class="grid3" style="margin-bottom:14px;">
+      <div class="field"><label>Year</label><input id="year" type="text" placeholder="2022" maxlength="4" oninput="scheduleRecallLookup()"></div>
+      <div class="field"><label>Make</label><input id="make" type="text" placeholder="Hyundai" oninput="scheduleRecallLookup()"></div>
+      <div class="field"><label>Model</label><input id="model" type="text" placeholder="Tucson" oninput="scheduleRecallLookup()"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Mileage</label><input id="mileage" type="text" placeholder="43,200"></div>
+      <div class="field"><label>Engine / Trim (optional)</label><input id="engine" type="text" placeholder="2.5L AWD Limited"></div>
+    </div>
+  </div>
+
+  <!-- RECALLS + TSB PANEL -->
+  <div class="recall-card">
+    <div class="recall-header" onclick="togglePanel()">
+      <div>
+        <div class="recall-title">Recalls &amp; TSBs</div>
+        <div class="recall-subtitle" id="recall-subtitle">Enter year, make, and model above to auto-check recalls</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="recall-badge badge-wait" id="recall-badge">—</span>
+        <span class="recall-toggle" id="recall-toggle">▼</span>
+      </div>
+    </div>
+
+    <div class="recall-body" id="recall-body">
+
+      <div class="subsection-label">Active NHTSA Recalls</div>
+      <div id="recall-results"><div class="recall-wait">Waiting for vehicle info...</div></div>
+
+      <div class="subsection-label" style="margin-top:24px;">Common Hyundai TSB Reference</div>
+      <div class="field" style="margin-bottom:10px;">
+        <input id="tsb-search" type="text" placeholder="Search TSBs — engine, IVT, Theta, sunroof, blend door..." oninput="renderTsbs()">
+      </div>
+      <div class="tsb-tabs" id="tsb-tabs"></div>
+      <div id="tsb-list"></div>
+
+      <a class="hti-btn" href="http://www.hyundaidealer.com" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Open HyundaiDealer.com
+      </a>
+
+    </div>
+  </div>
+
+  <!-- DTC CODES -->
+  <div class="card">
+    <div class="section-label">DTC Codes</div>
+    <div class="dtc-row">
+      <div class="field">
+        <label>Enter DTC Code</label>
+        <input id="dtc-input" type="text" placeholder="e.g. P0300  —  press Enter or click Add" maxlength="12" onkeydown="if(event.key==='Enter')addDtc()">
+      </div>
+      <button class="dtc-add-btn" onclick="addDtc()">+ Add</button>
+    </div>
+    <div class="dtc-chips" id="dtc-chips"></div>
+  </div>
+
+  <!-- WHAT HAPPENED -->
+  <div class="card">
+    <div class="section-label">What Happened</div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Customer Concern</label>
+      <textarea id="complaint" placeholder="e.g. car makes a clicking noise when turning left going slow"></textarea>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Tech Findings (Cause)</label>
+      <textarea id="cause" placeholder="e.g. found front left CV axle boot torn, grease loss, clicking on articulation"></textarea>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Repair Performed (Correction)</label>
+      <textarea id="correction" placeholder="e.g. replaced front left CV axle assembly, test drove, noise resolved"></textarea>
+    </div>
+    <div class="field">
+      <label>Parts / Labor Op Codes (optional)</label>
+      <input id="parts" type="text" placeholder="e.g. CV axle #49500-1234, op code 0395">
+    </div>
+    <button class="generate-btn" onclick="generate()" id="gen-btn">Generate 3 Cs</button>
+    <div id="error-area"></div>
+  </div>
+
+  <div id="results"></div>
+</div>
+
+<script>
+const WORKER_URL = 'https://tekadvisr-api.miguelt0904.workers.dev';
+
+let roType = 'CP';
+let dtcList = [];
+let recallTimer = null;
+let panelOpen = false;
+let activeCat = 'all';
+
+/* ─── VIN LOOKUP ─────────────────────────────────────────────── */
+async function lookupVin() {
+  const vin = document.getElementById('vin-input').value.trim();
+  const resultEl = document.getElementById('vin-result');
+  const btn = document.getElementById('vin-btn');
+  if (vin.length !== 17) {
+    resultEl.innerHTML = '<div class="vin-error">Please enter a full 17-character VIN.</div>';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Looking up...';
+  resultEl.innerHTML = '<div class="vin-status"><span class="spin">↻</span> Decoding VIN...</div>';
+  try {
+    const resp = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`);
+    const data = await resp.json();
+    const vals = {};
+    data.Results.forEach(r => { if (r.Value && r.Value !== 'Not Applicable' && r.Value !== null && r.Value !== '0') vals[r.Variable] = r.Value; });
+    const year = vals['Model Year'] || '';
+    const make = vals['Make'] || '';
+    const model = vals['Model'] || '';
+    const trim = vals['Trim'] || '';
+    const displ = vals['Displacement (L)'] ? vals['Displacement (L)'] + 'L' : '';
+    const cyls = vals['Engine Number of Cylinders'] ? vals['Engine Number of Cylinders'] + '-cyl' : '';
+    const driveType = vals['Drive Type'] || '';
+    const engineStr = [displ, cyls, trim, driveType].filter(Boolean).join(' ');
+    if (!year && !make && !model) {
+      resultEl.innerHTML = '<div class="vin-error">Could not decode that VIN. Double-check and try again.</div>';
+      btn.disabled = false; btn.textContent = 'Look Up'; return;
+    }
+    if (year) document.getElementById('year').value = year;
+    if (make) document.getElementById('make').value = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase();
+    if (model) document.getElementById('model').value = model;
+    if (engineStr) document.getElementById('engine').value = engineStr;
+    const chips = [[year,'Year'],[make,'Make'],[model,'Model'],[trim,'Trim'],[displ,'Engine'],[driveType,'Drive']].filter(d => d[0]);
+    resultEl.innerHTML = `<div class="vin-chips">${chips.map(d => `<div class="vin-chip"><strong>${d[1]}:</strong> ${d[0]}</div>`).join('')}</div><div class="vin-status"><span class="spin">↻</span> Checking for open recalls...</div>`;
+    scheduleRecallLookup();
+    if (make && model && year) {
+      setTimeout(async () => {
+        try {
+          const rResp = await fetch(`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${encodeURIComponent(year)}`);
+          const rData = await rResp.json();
+          const count = (rData.results || []).length;
+          const status = count > 0
+            ? `⚠ ${count} open recall${count > 1 ? 's' : ''} found — see Recalls &amp; TSBs panel below`
+            : `✓ No open NHTSA recalls found for this vehicle`;
+          resultEl.innerHTML = `<div class="vin-chips">${chips.map(d => `<div class="vin-chip"><strong>${d[1]}:</strong> ${d[0]}</div>`).join('')}</div><div class="vin-status">${status}</div>`;
+        } catch(e) { /* silent fail */ }
+      }, 1200);
+    }
+  } catch(e) {
+    resultEl.innerHTML = '<div class="vin-error">VIN decode failed. Check your connection and try again.</div>';
+  }
+  btn.disabled = false; btn.textContent = 'Look Up';
+}
+
+
+
+/* ─── TSB DATA ──────────────────────────────────────────────── */
+const TSBS = [
+  { num:'19-01-020H', title:'Theta II Engine Knock / Seizure', cat:'engine',
+    vehicles:'2011-2019 Sonata (2.0T, 2.4L GDI), 2013-2019 Santa Fe Sport (2.0T, 2.4L)',
+    desc:'Connecting rod bearing failure from improper heat treatment. Listen for knock or loss of oil pressure. May lead to seizure. Covered under extended warranty or recall depending on VIN. Cross-reference recall 17V-226.' },
+  { num:'21-01-010H', title:'Nu Engine Oil Consumption / Piston Ring Land Fracture', cat:'engine',
+    vehicles:'2017-2020 Elantra, 2018-2020 Elantra GT (2.0L Nu MPI)',
+    desc:'Excessive oil consumption or blue smoke from exhaust. Piston ring land fracture confirmed cause. Perform oil consumption test per TSB procedure before authorizing engine replacement. Often accompanied by P0300-series misfires.' },
+  { num:'22-01-006H', title:'GDI Carbon Buildup on Intake Valves', cat:'engine',
+    vehicles:'2011+ vehicles with GDI engines (Theta, Nu, Lambda)',
+    desc:'Carbon accumulation on intake valves causing rough idle, hesitation, and misfires. Fuel injector cleaning is NOT the fix — must perform intake valve cleaning procedure (walnut blasting) per TSB. Check for P030X misfire codes.' },
+  { num:'23-01-003H', title:'Timing Chain Stretch / Rattle on Cold Start', cat:'engine',
+    vehicles:'2013-2021 Santa Fe, Tucson (2.4L GDI), 2011-2015 Sonata (2.4L GDI)',
+    desc:'Timing chain rattle on cold start. May set P0011/P0014 cam timing codes. Inspect chain slack and tensioner wear. Replace full timing chain kit per TSB — tensioner-only replacement is not acceptable.' },
+  { num:'20-01-017H', title:'IVT Shudder / Hesitation 20-40 mph', cat:'transmission',
+    vehicles:'2019-2023 Elantra, 2020-2023 Tucson, Kona (IVT-equipped)',
+    desc:'Judder or shudder during light acceleration, especially 20-40 mph. Feels like drivetrain slip. Perform IVT fluid replacement with approved fluid FIRST. If symptoms persist, TCM reprogram available. Do not replace transmission before completing fluid service and software update.' },
+  { num:'21-AT-001H', title:'8-Speed DCT Shudder / Rough Low-Speed Engagement', cat:'transmission',
+    vehicles:'2019-2023 Veloster N, 2021-2023 Elantra N (8DCT)',
+    desc:'Shudder or jerking during low-speed engagement in stop-and-go traffic. Perform TCM software update first. If unresolved, clutch actuator inspection required.' },
+  { num:'22-AT-003H', title:'6-Speed Auto Harsh Downshift / Gear Hunting', cat:'transmission',
+    vehicles:'2015-2022 Sonata, Tucson, Santa Fe (6-speed automatic)',
+    desc:'Harsh downshift or transmission hunting between gears at cruising speed. Perform TCM software update first. Check fluid condition. If software does not resolve, valve body inspection required.' },
+  { num:'23-BE-012H', title:'ABS / ESC Module — Wheel Speed Sensor Fault', cat:'electrical',
+    vehicles:'2017-2023 Ioniq, 2019-2023 Kona, Tucson',
+    desc:'Intermittent ABS/ESC warning light with C1234-C1238 wheel speed sensor codes. Check sensor air gap and tone ring condition before replacement. Common in high-moisture climates — tone ring corrosion on rear hubs.' },
+  { num:'22-BE-004H', title:'12V Battery Drain — BlueLink Telematics Module', cat:'electrical',
+    vehicles:'2018-2023 BlueLink-equipped vehicles',
+    desc:'Parasitic draw of 70-120mA from telematics control unit not entering sleep mode. Perform draw test after 30-minute sleep cycle. TCM software update available to reduce keep-alive current. If draw remains above 50mA post-update, replace TCM.' },
+  { num:'22-BE-019H', title:'Infotainment System Freeze / Reboot Loop', cat:'electrical',
+    vehicles:'2020-2023 Sonata, Tucson, Santa Fe, Elantra (AVN 5.0+)',
+    desc:'AVN head unit freezes, goes black, or reboots randomly. Perform USB software update per TSB BEFORE replacing head unit. If update fails to resolve, check CAN bus communication faults before condemning head unit.' },
+  { num:'21-BE-022H', title:'FCA False Activation / Phantom Braking', cat:'electrical',
+    vehicles:'2019-2023 most Hyundai models with Forward Collision Avoidance Assist',
+    desc:'FCA system engages without obstacle present, typically on curves or at highway speed. Perform radar and camera calibration check first. Software update available. If calibration is correct after update, sensor replacement may be required.' },
+  { num:'23-HA-005H', title:'A/C Compressor Failure / Contaminated System', cat:'hvac',
+    vehicles:'2018-2023 Sonata, Santa Fe, Tucson (1.6T, 2.5L)',
+    desc:'A/C compressor seizure or refrigerant loss from compressor shaft seal leak. Evacuate and inspect for metallic contamination before recharging. Contaminated system requires full flush plus replacement of compressor, condenser, and expansion valve. Never recharge a contaminated system.' },
+  { num:'21-HA-009H', title:'Heater Core Odor / Coolant Smell in Cabin', cat:'hvac',
+    vehicles:'2015-2020 Sonata, 2016-2021 Tucson',
+    desc:'Coolant odor from HVAC vents indicating heater core seepage. Check for coolant level loss and fogged windshield. Pressure test cooling system — small heater core leaks are easily missed. Replacement requires dash removal on most models.' },
+  { num:'22-HA-002H', title:'Blend Door Actuator Rattle / Click on Startup', cat:'hvac',
+    vehicles:'2017-2023 Elantra, Ioniq, Kona',
+    desc:'Clicking or rattling from behind dash on startup or when adjusting temperature. Blend door actuator gear strip. Replacement does not require full dash removal on most models — access through glove box or lower dash panel.' },
+  { num:'20-BD-003H', title:'Panoramic Sunroof Glass Shattering / Wind Buffeting', cat:'body',
+    vehicles:'2015-2022 most models with panoramic sunroof',
+    desc:'Panoramic sunroof glass may shatter spontaneously or with minor road debris impact. Separate TSB covers wind noise / buffeting above 55 mph — deflector adjustment or replacement available. Inspect for micro-cracks in glass perimeter before adjusting deflector.' },
+  { num:'22-BD-011H', title:'Door Seal Wind Noise / Water Intrusion', cat:'body',
+    vehicles:'2021-2023 Tucson, 2020-2023 Sonata',
+    desc:'Wind noise or water intrusion at door seal perimeter. Inspect seal seating and door alignment first. Many cases resolved with striker adjustment alone. Seal replacement requires inner door panel removal.' },
+  { num:'21-BD-007H', title:'Sunroof Drain Hose Disconnected / Water on Floor', cat:'body',
+    vehicles:'Various 2013-2022 models with moonroof',
+    desc:'Water accumulating on front or rear floor from disconnected or clogged sunroof drain hose. Flush drains with compressed air before assuming hose disconnection — drains frequently clog with debris. Check drain routing under A-pillar trim.' },
+  { num:'22-SS-004H', title:'MDPS Noise / Vibration — Torque Sensor Calibration', cat:'steering',
+    vehicles:'2015-2023 Elantra, Sonata, Tucson',
+    desc:'Clicking, groaning, or vibration from MDPS column, especially during parking maneuvers. Perform MDPS torque sensor calibration via GDS FIRST. If calibration does not resolve, inspect intermediate shaft coupling before replacing column.' },
+  { num:'21-SS-009H', title:'Front Strut Clunk Over Bumps — Mount Bearing', cat:'steering',
+    vehicles:'2017-2022 Elantra, 2016-2021 Tucson',
+    desc:'Clunking or popping from front strut area over bumps or during steering input. Inspect strut mount bearing before replacing full strut assembly — bearing failure is the most common cause and can be replaced independently on most applications.' },
+];
+
+const CATS = [
+  { id:'all', label:'All' },
+  { id:'engine', label:'Engine' },
+  { id:'transmission', label:'Transmission' },
+  { id:'electrical', label:'Electrical' },
+  { id:'hvac', label:'HVAC' },
+  { id:'steering', label:'Steering / Susp.' },
+  { id:'body', label:'Body' },
+];
+
+/* ─── PRESETS ─────────────────────────────────────────────── */
+const PRESETS = {
+  cv_axle:{hint:'CV axle: clicking on turns, boot damage',c:'clicking or popping noise when turning',f:'CV axle boot torn / grease loss / joint wear on articulation',r:'replaced CV axle assembly, road tested, noise resolved'},
+  transmission_slipping:{hint:'Transmission: slipping, delayed engagement, harsh shifts',c:'vehicle hesitates or slips between gears',f:'transmission fluid burnt / clutch pack wear / solenoid fault',r:'performed transmission service / replaced solenoid, verified shift quality'},
+  transfer_case:{hint:'4WD: grinding, binding, not engaging',c:'4WD not engaging or grinding when engaged',f:'transfer case actuator fault / fluid contaminated',r:'replaced transfer case actuator / fluid, verified 4WD engagement'},
+  wheel_bearing:{hint:'Bearing: humming or growling, speed dependent',c:'humming or growling noise increases with vehicle speed',f:'wheel bearing worn, play noted, noise confirmed on road test',r:'replaced wheel bearing hub assembly, noise resolved after road test'},
+  differential:{hint:'Differential: whining, clunking, leak',c:'whining or clunking from rear / front differential',f:'differential fluid low or contaminated / worn ring and pinion',r:'replaced differential fluid / bearings, road tested, noise resolved'},
+  oil_consumption:{hint:'Oil consumption: burning oil, low between changes',c:'oil level low between oil changes / blue smoke from exhaust',f:'oil consumption excessive — piston rings / valve seals worn',r:'performed oil consumption test / replaced piston rings or valve seals per TSB'},
+  engine_misfire:{hint:'Misfire: rough idle, hesitation, CEL',c:'vehicle running rough / shaking at idle or under acceleration',f:'misfire detected on cylinder(s) — spark plug / coil / injector fault',r:'replaced spark plugs and/or ignition coil(s), cleared codes, road tested'},
+  no_start:{hint:'No start: crank no start, hard start',c:'vehicle will not start or cranks but does not fire',f:'no start confirmed — low fuel pressure / crank sensor / battery fault',r:'replaced failed component, verified start and idle, road tested'},
+  overheating:{hint:'Overheating: temp gauge high, coolant loss',c:'temperature gauge climbing / vehicle overheating',f:'coolant low / thermostat stuck / water pump failed',r:'replaced thermostat / water pump, pressure tested cooling system, no leaks found'},
+  timing_chain:{hint:'Timing chain: rattle on cold start, cam codes',c:'rattle or ticking noise on cold start from engine',f:'timing chain slack / tensioner worn / timing codes present',r:'replaced timing chain kit per manufacturer procedure, no noise on start'},
+  valve_cover:{hint:'Valve cover: oil leak, burning oil smell',c:'oil leak from top of engine / burning oil smell',f:'valve cover gasket leaking, oil present on exhaust manifold',r:'replaced valve cover gasket, cleaned engine, road tested, no leak found'},
+  brake_noise:{hint:'Brake noise: squeal, grind, metal-to-metal',c:'squealing or grinding noise when applying brakes',f:'brake pads worn past service limit / rotors scored',r:'replaced brake pads and rotors, bed-in procedure performed, noise resolved'},
+  brake_pedal:{hint:'Brake pedal: soft, spongy, pulsation',c:'brake pedal feels soft / spongy or vehicle pulls when braking',f:'brake fluid contaminated / caliper sticking / rotor runout excessive',r:'flushed brake fluid / replaced caliper / resurfaced rotors, pedal firm, road tested'},
+  abs_light:{hint:'ABS / ESC light on',c:'ABS or traction control warning light illuminated',f:'wheel speed sensor fault / reluctor ring damaged / module code stored',r:'replaced wheel speed sensor / reluctor ring, cleared codes, road tested, light off'},
+  battery_drain:{hint:'Battery: dead, slow crank, parasitic draw',c:'battery dead / vehicle will not crank in morning',f:'battery below spec / parasitic draw identified on circuit',r:'replaced battery / repaired parasitic draw source, load tested, verified charge'},
+  check_engine:{hint:'CEL: check engine light on',c:'check engine light on / MIL illuminated',f:'DTC(s) retrieved — see codes stored / confirmed fault',r:'repaired root cause per DTC diagnosis, cleared codes, completed drive cycle, MIL off'},
+  infotainment:{hint:'Infotainment: screen freeze, Bluetooth drop',c:'infotainment screen freezing / Bluetooth not connecting',f:'software fault / module update needed / antenna fault',r:'performed software update / replaced module, verified functionality'},
+  hvac_electric:{hint:'HVAC: blower not working, no airflow',c:'blower motor not working / no airflow from vents',f:'blower motor resistor failed / blower motor seized / fuse blown',r:'replaced blower motor resistor / motor, verified airflow on all speeds'},
+  camera_sensor:{hint:'ADAS: camera / sensor malfunction',c:'forward collision warning or camera system malfunction light on',f:'camera obstructed / calibration out of spec / sensor fault code stored',r:'cleaned / recalibrated sensor per OEM procedure, verified system operation, light off'},
+  power_steering:{hint:'Power steering: heavy, noise, leak',c:'steering wheel hard to turn / whining noise when turning',f:'power steering fluid low / pump worn / EPS fault code',r:'replaced power steering pump / flushed fluid / performed EPS calibration, verified steering'},
+  struts_shocks:{hint:'Suspension: clunk over bumps, harsh ride',c:'clunking or rattling noise over bumps / rough ride',f:'strut mount worn / shock absorber leaking / sway bar end link failed',r:'replaced strut assembly / end links, road tested on rough surface, noise resolved'},
+  alignment:{hint:'Alignment: vehicle pulls, uneven tire wear',c:'vehicle pulls to one side / uneven tire wear noted',f:'alignment out of spec — camber / toe / caster adjustment needed',r:'performed 4-wheel alignment to OEM spec, road tested, vehicle tracks straight'},
+  tie_rod:{hint:'Steering: play in wheel, clunk',c:'looseness in steering wheel / clunk when turning',f:'inner / outer tie rod worn, excessive play confirmed',r:'replaced tie rod(s), performed alignment, road tested, steering tight'},
+  ac_no_cool:{hint:'A/C: not cold, compressor not engaging',c:'A/C not blowing cold air / warm air from vents',f:'refrigerant low / compressor not engaging / condenser blocked',r:'evacuated and recharged A/C system / replaced compressor, verified cold output'},
+  heat_no_work:{hint:'Heater: no heat, cold air from vents',c:'heater not blowing warm air / cold air from all vents',f:'thermostat stuck open / heater core clogged / blend door fault',r:'replaced thermostat / flushed heater core, verified heat output at all settings'},
+  ac_noise:{hint:'A/C compressor noise on engagement',c:'loud noise when A/C is turned on',f:'A/C compressor bearing worn / clutch slipping',r:'replaced A/C compressor, evacuated and recharged system, verified quiet operation'},
+  oil_leak:{hint:'Oil leak: drips, smell, low oil',c:'oil dripping on ground / burning oil smell from engine',f:'oil leak identified at gasket / seal — source confirmed',r:'replaced leaking gasket/seal, cleaned engine, road tested, no leak confirmed'},
+  coolant_leak:{hint:'Coolant leak: low coolant, sweet smell',c:'coolant level low / sweet smell from engine bay',f:'coolant leak from hose / radiator / water pump / head gasket',r:'repaired leak source, pressure tested, refilled to spec, road tested, no leak'},
+  power_steering_leak:{hint:'PS fluid leak: low fluid, wet rack',c:'power steering fluid low / wet spot under vehicle',f:'power steering rack / hose / pump seal leaking',r:'replaced leaking hose / rack / seal, filled to spec, road tested, no leak'},
+  fuel_leak:{hint:'Fuel leak: smell, raw fuel',c:'fuel smell inside or outside vehicle / raw fuel visible',f:'fuel leak at fuel line / injector / rail fitting',r:'replaced leaking fuel component, pressure tested fuel system, no leak confirmed'},
+  nvh_general:{hint:'NVH: rattle, squeak, vibration',c:'rattle / squeak / vibration from vehicle',f:'noise isolated to location — loose trim / worn mount / heat shield',r:'secured / replaced noise source, road tested, noise resolved'},
+  exhaust_noise:{hint:'Exhaust: ticking, rattling, drone',c:'ticking or rattling noise from underneath vehicle',f:'exhaust manifold leak / loose heat shield / cracked flex pipe',r:'replaced exhaust component / tightened heat shield, road tested, noise resolved'},
+  wind_noise:{hint:'Wind noise: whistle at highway speeds',c:'wind noise or whistling at highway speeds',f:'door / window seal worn / trim panel gap allowing air intrusion',r:'replaced door seal / adjusted door, road tested, wind noise resolved'},
+  oil_change:{hint:'Routine oil and filter change',c:'customer requests routine oil and filter change',f:'oil and filter due per maintenance schedule',r:'performed oil and filter change, reset oil life monitor, topped off fluids, inspected vehicle'},
+  multi_point:{hint:'Multi-point inspection — MPI',c:'customer requests vehicle inspection',f:'performed multi-point inspection, findings noted on inspection sheet',r:'completed MPI, advised customer of findings, customer to return for recommended services'},
+  tire_rotation:{hint:'Tire rotation and balance',c:'customer requests tire rotation and balance',f:'tires due for rotation per maintenance schedule',r:'rotated tires per cross pattern, balanced all four wheels, set tire pressure to spec'},
+  spark_plugs:{hint:'Spark plug replacement — scheduled maintenance',c:'customer requests spark plug replacement per maintenance schedule',f:'spark plugs at replacement interval, electrode wear confirmed',r:'replaced all spark plugs to OEM spec, road tested, smooth idle confirmed'},
+  flush:{hint:'Fluid flush — coolant / brake / transmission',c:'customer requests fluid flush service',f:'fluid at or past service interval — color and condition degraded',r:'performed fluid flush and fill to OEM spec, road tested, verified proper operation'},
+};
+
+/* ─── INIT ─────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  buildTabs();
+  renderTsbs();
+});
+
+/* ─── RO TYPE ───────────────────────────────────────────────── */
+function setType(t) {
+  roType = t;
+  ['CP','WT','IN'].forEach(x => {
+    document.getElementById('btn-'+x).className = 'type-btn'+(x===t?' active-'+x.toLowerCase():'');
+  });
+}
+
+/* ─── PRESET ────────────────────────────────────────────────── */
+function applyPreset() {
+  const val = document.getElementById('preset').value;
+  const hint = document.getElementById('preset-hint');
+  if (!val || !PRESETS[val]) { hint.textContent=''; return; }
+  const p = PRESETS[val];
+  hint.textContent = p.hint;
+  const c=document.getElementById('complaint'), f=document.getElementById('cause'), r=document.getElementById('correction');
+  if (!c.value) c.value=p.c;
+  if (!f.value) f.value=p.f;
+  if (!r.value) r.value=p.r;
+}
+
+/* ─── DTC ───────────────────────────────────────────────────── */
+function addDtc() {
+  const input=document.getElementById('dtc-input');
+  const raw=input.value.trim().toUpperCase();
+  if (!raw) return;
+  raw.split(/[\s,;]+/).filter(Boolean).forEach(c=>{ if (!dtcList.includes(c)) dtcList.push(c); });
+  input.value='';
+  renderChips();
+}
+function removeDtc(code) { dtcList=dtcList.filter(c=>c!==code); renderChips(); }
+function renderChips() {
+  document.getElementById('dtc-chips').innerHTML = dtcList.length
+    ? dtcList.map(c=>`<div class="dtc-chip">${c}<button onclick="removeDtc('${c}')">&times;</button></div>`).join('')
+    : '';
+}
+
+/* ─── RECALL PANEL ──────────────────────────────────────────── */
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('recall-body').className = 'recall-body'+(panelOpen?' open':'');
+  document.getElementById('recall-toggle').className = 'recall-toggle'+(panelOpen?' open':'');
+}
+
+function scheduleRecallLookup() {
+  clearTimeout(recallTimer);
+  recallTimer = setTimeout(fetchRecalls, 900);
+}
+
+async function fetchRecalls() {
+  const year=document.getElementById('year').value.trim();
+  const make=document.getElementById('make').value.trim();
+  const model=document.getElementById('model').value.trim();
+
+  if (!year||!make||!model||year.length<4) {
+    setBadge('wait','—');
+    document.getElementById('recall-subtitle').textContent='Enter year, make, and model above to auto-check recalls';
+    return;
+  }
+
+  setBadge('loading','Checking...');
+  document.getElementById('recall-subtitle').textContent=`Checking recalls for ${year} ${make} ${model}...`;
+  if (!panelOpen) togglePanel();
+
+  try {
+    const url=`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${encodeURIComponent(year)}`;
+    const resp=await fetch(url);
+    const data=await resp.json();
+    const results=data.results||[];
+
+    if (results.length===0) {
+      setBadge('clear','No recalls');
+      document.getElementById('recall-subtitle').textContent=`No active recalls — ${year} ${make} ${model}`;
+      document.getElementById('recall-results').innerHTML=`<div class="recall-none">No active NHTSA recalls found for the ${year} ${make} ${model}.</div>`;
+    } else {
+      setBadge('alert',`${results.length} recall${results.length>1?'s':''}`);
+      document.getElementById('recall-subtitle').textContent=`${results.length} active recall${results.length>1?'s':''} — ${year} ${make} ${model}`;
+      document.getElementById('recall-results').innerHTML=results.map(r=>`
+        <div class="recall-item">
+          <div class="recall-item-num">${r.NHTSACampaignNumber||'N/A'} &nbsp;•&nbsp; ${escHtml(r.Component||'')}</div>
+          <div class="recall-item-title">${escHtml((r.Summary||r.Consequence||'Recall').substring(0,120))}</div>
+          <div class="recall-item-desc">${escHtml((r.Consequence||'').substring(0,200))}${(r.Consequence||'').length>200?'...':''}</div>
+          ${r.Remedy?`<div class="recall-item-remedy"><strong>Remedy:</strong> ${escHtml(r.Remedy.substring(0,200))}${r.Remedy.length>200?'...':''}</div>`:''}
+        </div>
+      `).join('');
+    }
+  } catch(e) {
+    setBadge('wait','Error');
+    document.getElementById('recall-subtitle').textContent='Could not reach NHTSA — check internet connection';
+    document.getElementById('recall-results').innerHTML=`<div class="recall-wait">Unable to fetch recall data. Check internet connection and try again.</div>`;
+  }
+}
+
+function setBadge(type,text) {
+  const b=document.getElementById('recall-badge');
+  b.className=`recall-badge badge-${type}`;
+  b.textContent=text;
+}
+
+/* ─── TSB ───────────────────────────────────────────────────── */
+function buildTabs() {
+  document.getElementById('tsb-tabs').innerHTML=CATS.map(c=>
+    `<button class="tsb-tab${c.id==='all'?' active':''}" onclick="setTsbCat('${c.id}',this)">${c.label}</button>`
+  ).join('');
+}
+function setTsbCat(id,btn) {
+  activeCat=id;
+  document.querySelectorAll('.tsb-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTsbs();
+}
+function renderTsbs() {
+  const q=(document.getElementById('tsb-search')?.value||'').toLowerCase();
+  const list=TSBS.filter(t=>{
+    const catOk=activeCat==='all'||t.cat===activeCat;
+    const qOk=!q||[t.num,t.title,t.vehicles,t.desc].join(' ').toLowerCase().includes(q);
+    return catOk&&qOk;
+  });
+  document.getElementById('tsb-list').innerHTML=list.length
+    ? list.map(t=>`
+        <div class="tsb-item">
+          <div class="tsb-top">
+            <div class="tsb-title">${escHtml(t.title)}</div>
+            <div class="tsb-num">${t.num}</div>
+          </div>
+          <div class="tsb-vehicles">${escHtml(t.vehicles)}</div>
+          <div class="tsb-desc">${escHtml(t.desc)}</div>
+        </div>`).join('')
+    : '<div class="tsb-empty">No TSBs match your search.</div>';
+}
+
+/* ─── GENERATE ──────────────────────────────────────────────── */
+async function generate() {
+  const year=document.getElementById('year').value.trim();
+  const make=document.getElementById('make').value.trim();
+  const model=document.getElementById('model').value.trim();
+  const mileage=document.getElementById('mileage').value.trim();
+  const engine=document.getElementById('engine').value.trim();
+  const complaint=document.getElementById('complaint').value.trim();
+  const cause=document.getElementById('cause').value.trim();
+  const correction=document.getElementById('correction').value.trim();
+  const parts=document.getElementById('parts').value.trim();
+  const pv=document.getElementById('preset').value;
+  const pl=pv&&PRESETS[pv]?PRESETS[pv].hint:'';
+
+  document.getElementById('error-area').innerHTML='';
+  if (!complaint||!cause||!correction) {
+    document.getElementById('error-area').innerHTML='<div class="error-msg">Please fill in the customer concern, tech findings, and repair performed before generating.</div>';
+    return;
+  }
+
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;
+  btn.innerHTML='Generating <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
+  document.getElementById('results').innerHTML='';
+
+  const typeLabel=roType==='CP'?'Customer Pay':roType==='WT'?'Warranty':'Internal';
+  const vehicleStr=[year,make,model,engine].filter(Boolean).join(' ')||'Not specified';
+  const dtcStr=dtcList.length>0?`DTC codes: ${dtcList.join(', ')}`:'No DTC codes';
+
+  const prompt=`You are a professional automotive service writer. Write clean, concise, professional 3 Cs for a vehicle repair order.
+
+RO Type: ${typeLabel}
+Vehicle: ${vehicleStr}
+${mileage?'Mileage: '+mileage:''}
+${dtcStr}
+${pl?'Repair category: '+pl:''}
+${parts?'Parts / Op codes: '+parts:''}
+
+Tech input:
+- Customer complaint: ${complaint}
+- Cause (tech findings): ${cause}
+- Correction (repair performed): ${correction}
+
+Rules:
+- COMPLAINT: Customer perspective. Start with "Customer states..." or "Customer reports...". No DTC codes here. 1-3 sentences.
+- CAUSE: Technician perspective. What was found on inspection. If DTCs present (${dtcList.join(', ')||'none'}), reference them specifically. Technical and precise. 1-3 sentences.
+- CORRECTION: What was done. Past tense. Include road test verification. 1-3 sentences.
+${roType==='WT'?'- WARRANTY: Factual and precise. Reference the defect clearly.':''}
+${roType==='IN'?'- INTERNAL: Concise and factual.':''}
+
+Respond ONLY with a valid JSON object with exactly three keys: "complaint", "cause", "correction". No markdown, no preamble.`;
+
+  try {
+    const resp=await fetch(WORKER_URL,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw=data.content?.find(b=>b.type==='text')?.text||'';
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderResults(parsed);
+  } catch(e) {
+    document.getElementById('error-area').innerHTML=`<div class="error-msg">Error: ${e.message||'Unknown error. Check internet connection and try again.'}</div>`;
+  }
+  btn.disabled=false;
+  btn.textContent='Generate 3 Cs';
+}
+
+/* ─── RESULTS ───────────────────────────────────────────────── */
+function renderResults({complaint,cause,correction}) {
+  const items=[
+    {key:'complaint',label:'C1 — Complaint',css:'c-complaint',text:complaint},
+    {key:'cause',label:'C2 — Cause',css:'c-cause',text:cause},
+    {key:'correction',label:'C3 — Correction',css:'c-correction',text:correction}
+  ];
+  document.getElementById('results').innerHTML=`
+    <div class="results-header">Generated 3 Cs</div>
+    ${items.map(i=>`
+      <div class="c-card ${i.css}">
+        <div class="c-card-header">
+          <span class="c-label">${i.label}</span>
+          <button class="copy-btn" onclick="copyText('${i.key}',this)">Copy</button>
+        </div>
+        <div class="c-card-body" id="text-${i.key}">${escHtml(i.text)}</div>
+      </div>`).join('')}
+    <div class="bottom-row">
+      <button class="copy-all-btn" onclick="copyAll()">Copy All 3 Cs</button>
+      <button class="regen-btn" onclick="generate()">Regenerate</button>
+    </div>
+    <div style="height:24px;"></div>`;
+}
+
+/* ─── UTILS ─────────────────────────────────────────────────── */
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+async function copyText(key,btn) {
+  const el=document.getElementById('text-'+key);
+  if (!el) return;
+  await navigator.clipboard.writeText(el.textContent);
+  btn.textContent='Copied!'; btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},1600);
+}
+async function copyAll() {
+  const labels={complaint:'COMPLAINT',cause:'CAUSE',correction:'CORRECTION'};
+  const all=['complaint','cause','correction'].map(k=>{
+    const el=document.getElementById('text-'+k);
+    return el?`${labels[k]}:\n${el.textContent}`:'';
+  }).filter(Boolean).join('\n\n');
+  await navigator.clipboard.writeText(all);
+}
+</script>
+</body>
+</html>
