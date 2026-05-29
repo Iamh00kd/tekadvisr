@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TekAdvisr — 3 Cs Writer</title>
+<title>TekAdvisr — RO Co-pilot</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -16,13 +16,29 @@
     --red-bg: #fcebeb; --red-border: #a32d2d; --red-text: #501313;
     --purple-bg: #eeedfe; --purple-border: #534ab7; --purple-text: #3c3489;
     --radius: 8px; --radius-lg: 12px;
+    --logo-hex: #0f172a; --logo-stroke: #38bdf8; --logo-cross: white;
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
-  .topbar-logo { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .dark {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #222536;
+    --border: #2e3248; --border2: #3d4260;
+    --text: #e8e9f0; --text2: #9ea3b8; --text3: #5c6280;
+    --blue-bg: #0d2340; --blue-border: #3b82c4; --blue-text: #90bcf0;
+    --green-bg: #0d2218; --green-border: #2d6a34; --green-text: #7ec98a;
+    --amber-bg: #251608; --amber-border: #8a5a1a; --amber-text: #d4a054;
+    --red-bg: #220d0d; --red-border: #8a2020; --red-text: #e08080;
+    --purple-bg: #16123a; --purple-border: #5c52c8; --purple-text: #a89ef0;
+    --logo-hex: #38bdf8; --logo-stroke: #0f172a; --logo-cross: #0f172a;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.2s, color 0.2s; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10; }
+  .topbar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .topbar-wordmark { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
   .topbar-divider { width: 1px; height: 18px; background: var(--border); }
   .topbar-sub { font-size: 13px; color: var(--text2); }
-  .topbar-badge { margin-left: auto; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green-text); }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .topbar-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green-text); }
+  .dark-toggle { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background 0.15s; }
+  .dark-toggle:hover { background: var(--border); }
   .layout { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
   .page-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; letter-spacing: -0.02em; }
   .page-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
@@ -92,6 +108,8 @@
   .generate-btn { width: 100%; padding: 13px; margin-top: 20px; background: var(--text); color: #fff; border: none; border-radius: var(--radius); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: -0.01em; transition: opacity 0.12s; }
   .generate-btn:hover { opacity: 0.88; }
   .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .dark .generate-btn { background: #38bdf8; color: #0f172a; }
+  .dark .vin-lookup-btn { background: #38bdf8; color: #0f172a; }
   .error-msg { font-size: 13px; color: var(--red-text); background: var(--red-bg); border: 1px solid var(--red-border); border-radius: var(--radius); padding: 10px 14px; margin-top: 12px; }
   /* RESULTS */
   .results-header { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; }
@@ -140,14 +158,26 @@
 <body>
 
 <div class="topbar">
-  <span class="topbar-logo">TekAdvisr</span>
+  <a class="topbar-logo" href="#">
+    <svg width="32" height="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" rx="10" fill="var(--logo-hex)"/>
+      <polygon points="32,8 52,19 52,41 32,52 12,41 12,19" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+      <line x1="32" y1="14" x2="32" y2="46" stroke="var(--logo-cross)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="16" y1="30" x2="48" y2="30" stroke="var(--logo-cross)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="32" cy="30" r="5" fill="#38bdf8"/>
+    </svg>
+    <span class="topbar-wordmark">TekAdvisr</span>
+  </a>
   <div class="topbar-divider"></div>
-  <span class="topbar-sub">3 Cs Writer</span>
-  <span class="topbar-badge">AI Powered</span>
+  <span class="topbar-sub">RO Co-pilot</span>
+  <div class="topbar-right">
+    <span class="topbar-badge">AI Powered</span>
+    <button class="dark-toggle" onclick="toggleDark()" id="dark-btn" title="Toggle dark mode">🌙</button>
+  </div>
 </div>
 
 <div class="layout">
-  <div class="page-title">3 Cs Writer</div>
+  <div class="page-title">RO Co-pilot</div>
   <div class="page-sub">Look up a VIN, check recalls, then generate clean professional RO documentation.</div>
 
   <!-- RO TYPE -->
@@ -756,6 +786,23 @@ async function copyAll() {
   }).filter(Boolean).join('\n\n');
   await navigator.clipboard.writeText(all);
 }
+/* ─── DARK MODE ──────────────────────────────────────────────── */
+function toggleDark() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  document.getElementById('dark-btn').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('tekadvisr-theme', isDark ? 'dark' : 'light');
+}
+(function initTheme() {
+  const saved = localStorage.getItem('tekadvisr-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (!saved && prefersDark)) {
+    document.documentElement.classList.add('dark');
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('dark-btn');
+      if (btn) btn.textContent = '☀️';
+    });
+  }
+})();
 </script>
 </body>
 </html>
